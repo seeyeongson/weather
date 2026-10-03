@@ -126,6 +126,16 @@ def print_report(report: dict) -> None:
         print(f"\n{LINE_WIDE}")
 
 
+# ---------------------------------------------------------------- JSON 저장
+def save_json(report: dict) -> str:
+    """예보를 JSON 파일로 저장하고 파일명을 반환한다."""
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"weather_{report['지역']}_{stamp}.json"
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(report, f, ensure_ascii=False, indent=2)
+    return filename
+
+
 # ---------------------------------------------------------------- 메인
 def main() -> None:
     print("🌤️ 날씨 예보 프로그램 (Open-Meteo API)")
@@ -147,6 +157,10 @@ def main() -> None:
     raw = get_weather(place["lat"], place["lon"])
     report = build_report(place["name"], place["lat"], place["lon"], raw)
     print_report(report)
+
+    answer = input("\n날씨 정보를 JSON 파일로 저장하시겠습니까? (y/n): ").strip().lower()
+    if answer == "y":
+        print(f"✅ 저장 완료: {save_json(report)}")
 
 
 if __name__ == "__main__":
