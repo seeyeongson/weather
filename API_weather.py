@@ -25,12 +25,35 @@ FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
 LINE_WIDE = "=" * 70
 LINE_THIN = "-" * 55
 
+# ---------------------------------------------------------------- 지역 검색
+def get_coordinates(city: str) -> Optional[dict]:
+    """지역 이름으로 위도/경도를 조회한다. 실패하면 None."""
+    params = {"name": city, "count": 1, "language": "ko", "format": "json"}
+    res = requests.get(GEO_URL, params=params, timeout=10)
+    results = res.json().get("results")
+    if not results:
+        return None
+    r = results[0]
+    return {"name": r.get("name", city), "lat": r["latitude"], "lon": r["longitude"]}
+
+
 # ---------------------------------------------------------------- 메인
 def main() -> None:
     print("🌤️ 날씨 예보 프로그램 (Open-Meteo API)")
     print(LINE_THIN)
     print(f"오전 6 시, 오후 3 시 기준으로 {FORECAST_DAYS} 일간 날씨를 제공합니다.")
     print(LINE_THIN)
+
+    city = input(f"\n날씨를 확인할 지역을 입력하세요 (기본값: {DEFAULT_CITY}): ").strip()
+    city = city or DEFAULT_CITY
+
+    place = get_coordinates(city)
+    if place is None:
+        print(f"❌ '{city}' 지역을 찾을 수 없습니다. 지역 이름을 확인해 주세요.")
+        return
+
+    print(f"\n📍 {place['name']} (위도: {place['lat']}, 경도: {place['lon']}) "
+          f"의 날씨 정보를 가져옵니다...")
 
 
 if __name__ == "__main__":
