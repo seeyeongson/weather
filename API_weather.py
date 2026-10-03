@@ -37,6 +37,23 @@ def get_coordinates(city: str) -> Optional[dict]:
     return {"name": r.get("name", city), "lat": r["latitude"], "lon": r["longitude"]}
 
 
+# ---------------------------------------------------------------- 날씨 조회
+def get_weather(lat: float, lon: float) -> Optional[dict]:
+    """위도/경도로 시간별·일별 예보 데이터를 가져온다."""
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "hourly": "temperature_2m,relative_humidity_2m,"
+                  "precipitation_probability,weather_code,wind_speed_10m",
+        "daily": "temperature_2m_max,temperature_2m_min",
+        "wind_speed_unit": "ms",
+        "timezone": "Asia/Seoul",
+        "forecast_days": FORECAST_DAYS,
+    }
+    res = requests.get(FORECAST_URL, params=params, timeout=10)
+    return res.json()
+
+
 # ---------------------------------------------------------------- 메인
 def main() -> None:
     print("🌤️ 날씨 예보 프로그램 (Open-Meteo API)")
@@ -54,6 +71,9 @@ def main() -> None:
 
     print(f"\n📍 {place['name']} (위도: {place['lat']}, 경도: {place['lon']}) "
           f"의 날씨 정보를 가져옵니다...")
+
+    raw = get_weather(place["lat"], place["lon"])
+    print(f"✅ 시간별 데이터 {len(raw['hourly']['time'])}건 수신")
 
 
 if __name__ == "__main__":
