@@ -1,0 +1,37 @@
+"""
+날씨 예보 프로그램 (Open-Meteo API 사용)
+- 사용자에게 지역을 입력받음 (기본값: 천안)
+- 오늘, 내일, 모레까지 3일간의 날씨를 오전 6시, 오후 3시 기준으로 표시
+- Open-Meteo API 사용 (인증키 불필요, 무료)
+
+GitHub 프로젝트 주소: https://github.com/내아이디/python-weather-report
+(↑ 본인의 실제 저장소 주소로 반드시 수정하세요)
+"""
+
+import json
+import sys
+from datetime import datetime
+from typing import Optional
+
+import requests
+
+# ---------------------------------------------------------------- 설정
+DEFAULT_CITY = "천안"          # 기본 지역
+FORECAST_DAYS = 3              # 예보 일수 (2 이상 자유롭게 변경 가능)
+TARGET_HOURS = (6, 15)         # 표시할 시각 (오전 6시, 오후 3시)
+DAY_LABELS = ["오늘", "내일", "모레", "글피"]
+GEO_URL = "https://geocoding-api.open-meteo.com/v1/search"
+FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
+LINE_WIDE = "=" * 70
+LINE_THIN = "-" * 55
+
+# ---------------------------------------------------------------- 메인
+def main() -> None:
+    print("🌤️ 날씨 예보 프로그램 (Open-Meteo API)")
+    print(LINE_THIN)
+    print(f"오전 6 시, 오후 3 시 기준으로 {FORECAST_DAYS} 일간 날씨를 제공합니다.")
+    print(LINE_THIN)
+
+
+if __name__ == "__main__":
+    main()
