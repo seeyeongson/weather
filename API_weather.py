@@ -4,8 +4,7 @@
 - 오늘, 내일, 모레까지 3일간의 날씨를 오전 6시, 오후 3시 기준으로 표시
 - Open-Meteo API 사용 (인증키 불필요, 무료)
 
-GitHub 프로젝트 주소: https://github.com/내아이디/python-weather-report
-(↑ 본인의 실제 저장소 주소로 반드시 수정하세요)
+GitHub 프로젝트 주소: https://github.com/seeyeongson/weather.git
 """
 
 import json
@@ -44,8 +43,13 @@ WEATHER_CODES = {
 def get_coordinates(city: str) -> Optional[dict]:
     """지역 이름으로 위도/경도를 조회한다. 실패하면 None."""
     params = {"name": city, "count": 1, "language": "ko", "format": "json"}
-    res = requests.get(GEO_URL, params=params, timeout=10)
-    results = res.json().get("results")
+    try:
+        res = requests.get(GEO_URL, params=params, timeout=10)
+        res.raise_for_status()
+        results = res.json().get("results")
+    except requests.RequestException as e:
+        print(f"❌ 지역 검색 중 네트워크 오류: {e}")
+        return None
     if not results:
         return None
     r = results[0]
@@ -65,8 +69,13 @@ def get_weather(lat: float, lon: float) -> Optional[dict]:
         "timezone": "Asia/Seoul",
         "forecast_days": FORECAST_DAYS,
     }
-    res = requests.get(FORECAST_URL, params=params, timeout=10)
-    return res.json()
+    try:
+        res = requests.get(FORECAST_URL, params=params, timeout=10)
+        res.raise_for_status()
+        return res.json()
+    except requests.RequestException as e:
+        print(f"❌ 날씨 정보 조회 중 오류: {e}")
+        return None
 
 
 # ---------------------------------------------------------------- 데이터 가공
@@ -138,6 +147,9 @@ def save_json(report: dict) -> str:
 
 # ---------------------------------------------------------------- 메인
 def main() -> None:
+    if hasattr(sys.stdout, "reconfigure"):      # 윈도우 콘솔 한글/이모지 깨짐 방지
+        sys.stdout.reconfigure(encoding="utf-8")
+
     print("🌤️ 날씨 예보 프로그램 (Open-Meteo API)")
     print(LINE_THIN)
     print(f"오전 6 시, 오후 3 시 기준으로 {FORECAST_DAYS} 일간 날씨를 제공합니다.")
@@ -155,6 +167,9 @@ def main() -> None:
           f"의 날씨 정보를 가져옵니다...")
 
     raw = get_weather(place["lat"], place["lon"])
+    if raw is None:
+        return
+
     report = build_report(place["name"], place["lat"], place["lon"], raw)
     print_report(report)
 
