@@ -96,6 +96,36 @@ def build_report(city: str, lat: float, lon: float, raw: dict) -> dict:
     return {"지역": city, "위도": lat, "경도": lon, "일별": days}
 
 
+# ---------------------------------------------------------------- 출력
+def print_report(report: dict) -> None:
+    """가공된 예보를 화면에 보기 좋게 출력한다."""
+    hours_txt = " / ".join(
+        f"{'오전' if h < 12 else '오후'} {h if h <= 12 else h - 12} 시"
+        for h in TARGET_HOURS
+    )
+    print(f"\n{LINE_WIDE}")
+    print(f"🌤️ {report['지역']} 날씨 예보 ({hours_txt} 기준)")
+    print(LINE_WIDE)
+
+    for idx, day in enumerate(report["일별"]):
+        dt = datetime.strptime(day["날짜"], "%Y-%m-%d")
+        label = DAY_LABELS[idx] if idx < len(DAY_LABELS) else f"{idx}일 후"
+        print(f"\n📅 {label} ({dt.strftime('%m.%d.')})")
+        print(LINE_THIN)
+        for e in day["예보"]:
+            hour = int(e["시각"][:2])
+            icon = "🌅" if hour < 12 else "🌇"
+            ampm = "오전" if hour < 12 else "오후"
+            print(f"\n  {icon} {ampm} {e['시각']}")
+            print(f"    날씨: {e['날씨']}")
+            print(f"    기온: {e['기온']} °C")
+            print(f"    강수확률: {e['강수확률']}%")
+            print(f"    습도: {e['습도']}%")
+            print(f"    풍속: {e['풍속']} m/s")
+        print(f"\n  🌡️ 일일 기온: 최저 {day['최저기온']} °C / 최고 {day['최고기온']} °C")
+        print(f"\n{LINE_WIDE}")
+
+
 # ---------------------------------------------------------------- 메인
 def main() -> None:
     print("🌤️ 날씨 예보 프로그램 (Open-Meteo API)")
@@ -116,7 +146,7 @@ def main() -> None:
 
     raw = get_weather(place["lat"], place["lon"])
     report = build_report(place["name"], place["lat"], place["lon"], raw)
-    print(json.dumps(report, ensure_ascii=False, indent=2))
+    print_report(report)
 
 
 if __name__ == "__main__":
